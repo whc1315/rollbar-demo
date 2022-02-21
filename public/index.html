@@ -1,81 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Lift Coefficient Site!</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student List</title>
-</head>
-
-<body>
-    <h1>Student List</h1>
-    <form>
-        <input type='text' placeholder='type a student name here...' />
-        <button>add student</button>
+  <body>
+    <header id="header">
+      <h1 id="Title">Lift Coefficient Calculator</h1>
+      <img src="plane.png" alt="Airplane" id="plane" />
+      <h2 id="equation">Cl = l/(p(v^2)(a/2))</h2>
+    </header>
+    <form class="column.middle">
+      <input type="text" placeholder="Lift Force lbf" id="liftForce" />
+      <input type="text" placeholder="Surface Area in^2" id="surfaceArea" />
+      <input type="text" placeholder="Flow Speed ft/s" id="flowSpeed" />
+      <input type="text" placeholder="Air Density lbs/ft^3" id="airDensity" />
+      <button id="liftBtn">Calculate Lift Coefficient</button>
+      <section></section>
     </form>
-    <section></section>
+    <section class="column.side">
+      <a href="https://en.wikipedia.org/wiki/Lift_coefficient">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Lift_curve.svg/1920px-Lift_curve.svg.png"
+          alt="Lift Coefficient Graph"
+          id="graph"
+        />
+      </a>
+    </section>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <script>
-        const addForm = document.querySelector('form');
-        const nameInput = document.querySelector('input');
-        const container = document.querySelector('section');
+      const addForm = document.querySelector("form");
+      const l = document.getElementById("liftForce");
+      const a = document.getElementById("surfaceArea");
+      const v = document.getElementById("flowSpeed");
+      const p = document.getElementById("airDensity");
+      const answer = l / (p * (v * v) * (a / 2));
+      const container = document.querySelector("section");
 
-        function putTheThingInTheView(res) {
-            container.innerHTML = ''
-            nameInput.value = ''
+      function showLiftCo(res) {
+        container.innerHTML = "";
+        answer.value = "";
 
-            res.data.forEach((studentName, index) => {
-                container.innerHTML += `<p name=${index}>${studentName}</p>`
-            })
+        res.data.forEach((liftCoefficientAnswer, index) => {
+          container.innerHTML += `<p answer=${index}>${liftCoefficientAnswer}</p>`;
+        });
 
-            document.querySelectorAll('p').forEach(element => {
-                const theIndexValue = element.getAttribute('name');
+        document.querySelectorAll("p").forEach((element) => {
+          const theIndexValue = element.getAttribute("answer");
 
-                element.addEventListener('click', () => {
-                    axios
-                        .delete(`/api/students/${theIndexValue}`)
-                        .then(res => {
-                            putTheThingInTheView(res)
-                        })
-                })
-            })
-        }
-
-        function submitHandler(evt) {
-            evt.preventDefault();
-
+          element.addEventListener("click", () => {
             axios
-                .post('/api/students', { name: nameInput.value })
-                .then(res => {
-                    putTheThingInTheView(res)
-                })
-                .catch(err => {
-                    nameInput.value = ''
+              .delete(`/api/liftCoefficient/${theIndexValue}`)
+              .then((res) => {
+                showLiftCo(res);
+              });
+          });
+        });
+      }
 
-                    const notif = document.createElement('aside')
-                    notif.innerHTML = `<p>${err.response.data}</p>
-                    <button class="close">close</button>`
-                    document.body.appendChild(notif)
+      function submitHandler(evt) {
+        evt.preventDefault();
 
-                    document.querySelectorAll('.close').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            e.target.parentNode.remove()
-                        })
-                    })
-                })
-        }
-
-        // get student list on initial load
         axios
-            .get('/api/students')
-            .then(res => {
-                putTheThingInTheView(res)
-            })
+          .post("/api/liftCoefficient", {
+            liftForce: l.value,
+            surfaceArea: a.value,
+            flowSpeed: v.value,
+            airDensity: p.value,
+          })
+          .then((res) => {
+            showLiftCo(res);
+          })
+          .catch((err) => {
+            nameInput.value = "";
 
-        addForm.addEventListener('submit', submitHandler)
+            const notif = document.createElement("aside");
+            notif.innerHTML = `<p>${err.response.data}</p>
+                <button class="close">close</button>`;
+            document.body.appendChild(notif);
+
+            document.querySelectorAll(".close").forEach((btn) => {
+              btn.addEventListener("click", (e) => {
+                e.target.parentNode.remove();
+              });
+            });
+          });
+      }
+
+      // get student list on initial load
+      axios.get("/api/liftCoefficient").then((res) => {
+        showLiftCo(res);
+      });
+
+      addForm.addEventListener("submit", submitHandler);
     </script>
-</body>
-
+    <footer>Go Take Flight!</footer>
+  </body>
 </html>
